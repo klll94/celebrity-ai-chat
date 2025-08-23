@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>与名人对话中...</title>
+    <style>
+        /* 超简化聊天页面CSS - 完全无动画 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            background: #4a5568;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .back-btn {
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 5px;
+        }
+        
+        .char-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .char-avatar img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            margin-right: 10px;
+        }
+        
+        .char-name {
+            font-size: 1.2rem;
+        }
+        
+        .chat-window {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+        }
+        
+        .user-message {
+            justify-content: flex-end;
+        }
+        
+        .bot-message {
+            justify-content: flex-start;
+        }
+        
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            word-wrap: break-word;
+        }
+        
+        .user-message .message-bubble {
+            background: #4a5568;
+            color: white;
+        }
+        
+        .bot-message .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .chat-input-container {
+            background: white;
+            border-top: 1px solid #ddd;
+            padding: 15px 20px;
+        }
+        
+        .chat-input-form {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+        }
+        
+        .message-input:focus {
+            border-color: #4a5568;
+        }
+        
+        .send-btn {
+            padding: 12px 24px;
+            background: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .chat-header {
+                padding: 12px 15px;
+            }
+            .char-name {
+                font-size: 1.1rem;
+            }
+            .chat-window {
+                padding: 15px;
+            }
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-header">
+        <a href="index-simple.html" class="back-btn">← 返回</a>
+        <div class="char-info">
+            <div class="char-avatar">
+                <img id="char-avatar" src="" alt="名人头像">
+            </div>
+            <div class="char-name" id="char-name">加载中...</div>
+        </div>
+        <div style="width: 80px;"></div>
+    </div>
+    
+    <div class="chat-window" id="chat-window">
+        <div class="loading">正在准备对话...</div>
+    </div>
+    
+    <div class="chat-input-container">
+        <form class="chat-input-form" id="chat-form">
+            <input type="text" class="message-input" id="message-input" placeholder="输入您的问题..." disabled>
+            <button type="submit" class="send-btn" id="send-btn" disabled>发送</button>
+        </form>
+    </div>
+
+    <script>
+        // 名人数据
+        const characters = {
+            'libai': {
+                name: '李白',
+                avatar: 'images/libai.jpg',
+                welcome: '哈哈！我是李白，诗仙李太白是也！今日与君相遇，甚是欢喜。不知君想与我聊些什么？'
+            },
+            'wangwei': {
+                name: '王维',
+                avatar: 'images/wangwei.jpg',
+                welcome: '施主有礼了。贫道王维，字摩诘。今日能与君相遇，实乃缘分。'
+            },
+            'dufu': {
+                name: '杜甫',
+                avatar: 'images/dufu.jpg',
+                welcome: '在下杜甫，字子美，人称杜工部。见过君子。'
+            },
+            'confucius': {
+                name: '孔子',
+                avatar: 'images/confucius.jpg',
+                welcome: '学而时习之，不亦说乎？有朋自远方来，不亦乐乎？我是孔丘，字仲尼。'
+            },
+            'sushi': {
+                name: '苏轼',
+                avatar: 'images/sushi.jpg',
+                welcome: '哈哈哈！苏子瞻见过君子。人生如梦，何不豁达面对？'
+            },
+            'liqingzhao': {
+                name: '李清照',
+                avatar: 'images/liqingzhao.jpg',
+                welcome: '妾身李清照，号易安居士。今日能与君相遇，实乃缘分。'
+            },
+            'zhugeliang': {
+                name: '诸葛亮',
+                avatar: 'images/zhugeliang.jpg',
+                welcome: '亮字孔明，号卧龙。今日与君相遇，甚感荣幸。'
+            },
+            'caocao': {
+                name: '曹操',
+                avatar: 'images/caocao.jpg',
+                welcome: '吾乃曹操曹孟德。今日与君相遇，不知君对乱世英雄有何看法？'
+            }
+        };
+        
+        // 模拟回复
+        const mockReplies = {
+            'libai': [
+                '哈哈！君之问甚妙。正如我常说"人生得意须尽欢，莫使金樽空对月"，凡事当豁达面对！',
+                '此言有理！想当年我"仰天大笑出门去，我辈岂是蓬蒿人"，志向高远，不拘小节！',
+                '好问题！就如"长风破浪会有时，直挂云帆济沧海"，人生总有峰回路转之时！'
+            ],
+            'confucius': [
+                '善哉！正如我常说"学而时习之，不亦说乎"，此事需要不断思考和实践。',
+                '君之问很有道理。如"己所不欲，勿施于人"，待人接物当有同理心。',
+                '此乃大哉问！正如"知之为知之，不知为不知，是知也"，诚实面对自己最重要。'
+            ],
+            'default': [
+                '君之问题很有趣，让我仔细想想...',
+                '这个问题值得深思，请容我慢慢道来。',
+                '哈哈，君真是有心人，这个话题很有意思。'
+            ]
+        };
+        
+        let currentCharacter = null;
+        let isLoading = false;
+        
+        // 初始化
+        function init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const characterId = urlParams.get('character');
+            
+            if (!characterId || !characters[characterId]) {
+                alert('未找到该名人信息，即将返回主页');
+                window.location.href = 'index-simple.html';
+                return;
+            }
+            
+            currentCharacter = characters[characterId];
+            
+            // 设置页面
+            document.getElementById('char-name').textContent = '与 ' + currentCharacter.name + ' 对话中';
+            document.getElementById('char-avatar').src = currentCharacter.avatar;
+            document.getElementById('char-avatar').onerror = function() {
+                this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM2NjdlZWEiLz4KPHR0ZXh0IHg9IjIwIiB5PSIyNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5ZCN5Lq6PC90ZXh0Pgo8L3N2Zz4K';
+            };
+            document.title = '与' + currentCharacter.name + '对话中...';
+            
+            // 显示欢迎消息
+            setTimeout(() => {
+                document.querySelector('.loading').remove();
+                addMessage('bot', currentCharacter.welcome);
+                
+                // 启用输入
+                document.getElementById('message-input').disabled = false;
+                document.getElementById('send-btn').disabled = false;
+            }, 1000);
+        }
+        
+        // 添加消息
+        function addMessage(sender, text) {
+            const chatWindow = document.getElementById('chat-window');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + sender + '-message';
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            bubbleDiv.textContent = text;
+            
+            messageDiv.appendChild(bubbleDiv);
+            chatWindow.appendChild(messageDiv);
+            
+            // 滚动到底部
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+        
+        // 发送消息
+        async function sendMessage() {
+            if (isLoading) return;
+            
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // 显示用户消息
+            addMessage('user', message);
+            input.value = '';
+            
+            // 设置加载状态
+            isLoading = true;
+            document.getElementById('send-btn').disabled = true;
+            document.getElementById('send-btn').textContent = '发送中...';
+            
+            // 模拟延迟
+            setTimeout(() => {
+                // 获取回复
+                const replies = mockReplies[currentCharacter.name.includes('李白') ? 'libai' : 
+                                         currentCharacter.name.includes('孔子') ? 'confucius' : 'default'];
+                const reply = replies[Math.floor(Math.random() * replies.length)];
+                
+                addMessage('bot', reply);
+                
+                // 恢复状态
+                isLoading = false;
+                document.getElementById('send-btn').disabled = false;
+                document.getElementById('send-btn').textContent = '发送';
+            }, 1000 + Math.random() * 2000);
+        }
+        
+        // 绑定事件
+        document.getElementById('chat-form').onsubmit = function(e) {
+            e.preventDefault();
+            sendMessage();
+        };
+        
+        // 初始化页面
+        init();
+    </script>
+</body>
+</html> 

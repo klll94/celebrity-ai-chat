@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>名人智能体对话 - Coze SDK版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 430px;
+            width: 100%;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: transparent;
+            position: relative;
+        }
+
+        /* 首页样式 */
+        .home-page {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: transparent;
+        }
+
+        .app-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .app-title {
+            font-size: 2.2rem;
+            font-weight: 300;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .app-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        .share-section {
+            margin-top: 20px;
+        }
+
+        .share-btn {
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 160ms ease;
+            margin-right: 12px;
+        }
+
+        .share-btn:hover {
+            background: rgba(255,255,255,0.25);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+        }
+
+        .celebrities-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            width: 100%;
+            margin: 0 auto;
+            flex: 1;
+        }
+
+        .celebrity-card {
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 16px;
+            padding: 14px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 5px 16px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.06);
+            transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .celebrity-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .celebrity-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #667eea;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.25);
+            display: block;
+            margin: 0 auto 10px;
+        }
+
+        .celebrity-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .celebrity-period {
+            font-size: 0.82rem;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .celebrity-desc {
+            font-size: 0.86rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        /* 聊天页面样式 */
+        .chat-page {
+            display: none; /* 初始隐藏 */
+            height: 100vh;
+            position: relative;
+            background: #f5f5f5;
+        }
+
+        .chat-page.show {
+            display: block; /* 显示时 */
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: white;
+            color: #333;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            border-bottom: 1px solid #e5e5e5;
+            position: relative;
+            z-index: 10;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            color: #333;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-btn:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .char-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .char-avatar-img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #e5e5e5;
+        }
+
+        .char-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .char-period {
+            font-size: 0.8rem;
+            color: #888;
+            margin: 0;
+        }
+
+        /* Coze SDK 容器样式 */
+        .coze-chat-container {
+            position: absolute;
+            top: 60px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+        }
+
+        /* 隐藏类 */
+        .hidden { display: none; }
+        .show { display: block; }
+
+        /* 加载状态 */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 480px) {
+            .app-title {
+                font-size: 1.8rem;
+            }
+            
+            .celebrity-avatar {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .celebrity-card {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 首页 -->
+        <div id="home-page" class="home-page">
+            <div class="app-header">
+                <div class="header-content">
+                    <h1 class="app-title">名人智能体对话</h1>
+                    <p class="app-subtitle">选择一位历史名人，开始有趣的对话吧</p>
+                    
+                    <div class="share-section">
+                        <button id="qr-toggle" class="share-btn">📱 分享二维码</button>
+                        <button id="config-toggle" class="share-btn">⚙️ 配置API</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="celebrities-section">
+                <div id="celebrities-grid" class="celebrities-grid">
+                    <!-- 角色卡片将通过JS动态生成 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 聊天页面 -->
+        <div id="chat-page" class="chat-page">
+            <div class="chat-header">
+                <button id="back-btn" class="back-btn">
+                    <span>←</span>
+                    <span style="margin-left: 8px;">返回</span>
+                </button>
+                
+                <div class="char-info">
+                    <img id="current-char-avatar" class="char-avatar-img" src="" alt="角色头像">
+                    <div class="char-details">
+                        <div id="current-char-name" class="char-name">加载中...</div>
+                        <div id="current-char-period" class="char-period"></div>
+                    </div>
+                </div>
+                
+                <div style="min-width: 60px;"></div>
+            </div>
+            
+            <div id="coze-chat-container" class="coze-chat-container">
+                <!-- Coze Chat SDK 将在这里渲染 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 先定义所有功能，再加载SDK
+        console.log('开始加载脚本...');
+        // 18个名人数据配置（按你指定的顺序）
+        const CELEBRITIES_DATA = [
+            {
+                id: 'libai',
+                name: '李白',
+                period: '唐朝 (701-762)',
+                description: '唐代浪漫主义诗人，被誉为"诗仙"',
+                avatar: 'images/李白.png',
+                botId: 'YOUR_LIBAI_BOT_ID'
+            },
+            {
+                id: 'luxun',
+                name: '鲁迅',
+                period: '近现代 (1881-1936)',
+                description: '中国现代文学奠基人、思想家、文学家、革命家',
+                avatar: 'images/鲁迅.png',
+                botId: 'YOUR_LUXUN_BOT_ID'
+            },
+            {
+                id: 'edison',
+                name: '爱迪生',
+                period: '近现代 (1847-1931)',
+                description: '美国发明家、企业家，拥有众多重要发明专利',
+                avatar: 'images/爱迪生.png',
+                botId: 'YOUR_EDISON_BOT_ID'
+            },
+            {
+                id: 'faraday',
+                name: '法拉第',
+                period: '近现代 (1791-1867)',
+                description: '英国物理学家、化学家，电磁学奠基人',
+                avatar: 'images/法拉第.png',
+                botId: 'YOUR_FARADAY_BOT_ID'
+            },
+            {
+                id: 'luobinwang',
+                name: '骆宾王',
+                period: '唐朝 (约640-684)',
+                description: '唐代诗人，"初唐四杰"之一',
+                avatar: 'images/骆宾王.png',
+                botId: 'YOUR_LUOBINWANG_BOT_ID'
+            },
+            {
+                id: 'wangwei',
+                name: '王维',
+                period: '唐朝 (701-761)',
+                description: '唐代诗人、画家，山水田园诗派代表',
+                avatar: 'images/王维.png',
+                botId: 'YOUR_WANGWEI_BOT_ID'
+            },
+            {
+                id: 'yeshengtao',
+                name: '叶圣陶',
+                period: '现代 (1894-1988)',
+                description: '中国现代作家、教育家、出版家',
+                avatar: 'images/叶圣陶.png',
+                botId: 'YOUR_YESHENGTAO_BOT_ID'
+            },
+            {
+                id: 'menghaoran',
+                name: '孟浩然',
+                period: '唐朝 (689-740)',
+                description: '唐代诗人，山水田园诗派代表',
+                avatar: 'images/孟浩然.png',
+                botId: 'YOUR_MENGHAORAN_BOT_ID'
+            },
+            {
+                id: 'baijuyi',
+                name: '白居易',
+                period: '唐朝 (772-846)',
+                description: '唐代诗人，现实主义诗歌的倡导者',
+                avatar: 'images/白居易.png',
+                botId: 'YOUR_BAIJUYI_BOT_ID'
+            },
+            {
+                id: 'yangwanli',
+                name: '杨万里',
+                period: '南宋 (1127-1206)',
+                description: '南宋诗人，"中兴四大诗人"之一',
+                avatar: 'images/杨万里.png',
+                botId: 'YOUR_YANGWANLI_BOT_ID'
+            },
+            {
+                id: 'jiadao',
+                name: '贾岛',
+                period: '唐朝 (779-843)',
+                description: '唐代诗人，苦吟诗人的代表',
+                avatar: 'images/贾岛.png',
+                botId: 'YOUR_JIADAO_BOT_ID'
+            },
+            {
+                id: 'quyuan',
+                name: '屈原',
+                period: '战国 (约340-278BC)',
+                description: '中国古代伟大的爱国诗人，楚辞创立者',
+                avatar: 'images/屈原.png',
+                botId: 'YOUR_QUYUAN_BOT_ID'
+            },
+            {
+                id: 'zhukezhen',
+                name: '竺可桢',
+                period: '现代 (1890-1974)',
+                description: '中国现代气象学家、地理学家',
+                avatar: 'images/竺可桢.png',
+                botId: 'YOUR_ZHUKEZHEN_BOT_ID'
+            },
+            {
+                id: 'shenkuo',
+                name: '沈括',
+                period: '北宋 (1031-1095)',
+                description: '北宋科学家、政治家，《梦溪笔谈》作者',
+                avatar: 'images/沈括.png',
+                botId: 'YOUR_SHENKUO_BOT_ID'
+            },
+            {
+                id: 'tuyouyou',
+                name: '屠呦呦',
+                period: '现代 (1930-)',
+                description: '中国药学家，诺贝尔生理学或医学奖获得者',
+                avatar: 'images/屠呦呦.png',
+                botId: 'YOUR_TUYOUYOU_BOT_ID'
+            },
+            {
+                id: 'newton',
+                name: '牛顿',
+                period: '近现代 (1643-1727)',
+                description: '英国物理学家、数学家，经典力学的奠基人',
+                avatar: 'images/牛顿.png',
+                botId: 'YOUR_NEWTON_BOT_ID'
+            },
+            {
+                id: 'galileo',
+                name: '伽利略',
+                period: '近现代 (1564-1642)',
+                description: '意大利物理学家、天文学家，近代科学奠基人',
+                avatar: 'images/伽利略.png',
+                botId: 'YOUR_GALILEO_BOT_ID'
+            },
+            {
+                id: 'nieer',
+                name: '聂耳',
+                period: '现代 (1912-1935)',
+                description: '中国音乐家，《义勇军进行曲》作曲者',
+                avatar: 'images/聂耳.png',
+                botId: 'YOUR_NIEER_BOT_ID'
+            }
+        ];
+
+        let currentChatClient = null;
+        let currentCharacter = null;
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成，开始初始化');
+            try {
+                // 确保首页显示
+                ensureHomePageVisible();
+                
+                generateCelebrityCards();
+                bindEvents();
+                console.log('页面初始化完成');
+            } catch (error) {
+                console.error('页面初始化出错:', error);
+            }
+        });
+
+        // 确保首页可见
+        function ensureHomePageVisible() {
+            console.log('确保首页可见');
+            const homePage = document.getElementById('home-page');
+            const chatPage = document.getElementById('chat-page');
+            
+            if (homePage) {
+                homePage.classList.remove('hidden');
+                homePage.classList.add('show');
+                console.log('首页设置为可见');
+            } else {
+                console.error('找不到首页元素');
+            }
+            
+            if (chatPage) {
+                chatPage.classList.add('hidden');
+                chatPage.classList.remove('show');
+                console.log('聊天页面设置为隐藏');
+            }
+        }
+
+        // 生成角色卡片
+        function generateCelebrityCards() {
+            console.log('开始生成角色卡片，共', CELEBRITIES_DATA.length, '个角色');
+            const grid = document.getElementById('celebrities-grid');
+            
+            if (!grid) {
+                console.error('找不到角色网格容器');
+                return;
+            }
+            
+            console.log('角色网格容器找到，当前样式:', {
+                display: window.getComputedStyle(grid).display,
+                visibility: window.getComputedStyle(grid).visibility,
+                width: grid.offsetWidth,
+                height: grid.offsetHeight
+            });
+            
+            grid.innerHTML = '';
+
+            CELEBRITIES_DATA.forEach((celebrity, index) => {
+                try {
+                    const card = createCelebrityCard(celebrity);
+                    grid.appendChild(card);
+                    console.log(`已添加角色 ${index + 1}:`, celebrity.name);
+                } catch (error) {
+                    console.error('创建角色卡片失败:', celebrity.name, error);
+                }
+            });
+            
+            console.log('角色卡片生成完成，网格内容:', grid.children.length, '个子元素');
+            
+            // 检查父容器
+            const homePage = document.getElementById('home-page');
+            if (homePage) {
+                console.log('首页容器样式:', {
+                    display: window.getComputedStyle(homePage).display,
+                    visibility: window.getComputedStyle(homePage).visibility,
+                    width: homePage.offsetWidth,
+                    height: homePage.offsetHeight
+                });
+            }
+        }
+
+        // 创建单个角色卡片
+        function createCelebrityCard(celebrity) {
+            const card = document.createElement('div');
+            card.className = 'celebrity-card';
+            
+            // 添加点击事件处理和调试
+            card.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('点击角色卡片:', celebrity.name);
+                startChatWithCelebrity(celebrity);
+            };
+
+            // 添加悬停效果增强视觉反馈
+            card.onmouseover = () => card.style.transform = 'translateY(-2px)';
+            card.onmouseout = () => card.style.transform = '';
+
+            card.innerHTML = `
+                <div class="avatar-container">
+                    <img class="celebrity-avatar" 
+                         src="${celebrity.avatar}" 
+                         alt="${celebrity.name}"
+                         onerror="this.src='images/default-avatar.jpg'">
+                </div>
+                <div class="celebrity-name">${celebrity.name}</div>
+                <div class="celebrity-period">${celebrity.period}</div>
+                <div class="celebrity-desc">${celebrity.description}</div>
+            `;
+
+            return card;
+        }
+
+        // 开始与指定角色对话
+        function startChatWithCelebrity(celebrity) {
+            try {
+                console.log('🚀 开始与角色对话:', celebrity.name);
+                currentCharacter = celebrity;
+                
+                // 更新聊天页面信息
+                updateChatPageInfo(celebrity);
+                
+                // 切换到聊天页面
+                showChatPage();
+                
+                // 确保SDK加载后再初始化聊天客户端
+                ensureSDKAndInitialize(celebrity);
+                
+                console.log('✅ 对话初始化完成:', celebrity.name);
+            } catch (error) {
+                console.error('❌ 启动对话时出错:', error);
+                alert('启动对话时出错: ' + error.message);
+            }
+        }
+
+        // 更新聊天页面角色信息
+        function updateChatPageInfo(celebrity) {
+            document.getElementById('current-char-name').textContent = celebrity.name;
+            document.getElementById('current-char-period').textContent = celebrity.period;
+            
+            const avatarImg = document.getElementById('current-char-avatar');
+            avatarImg.src = celebrity.avatar;
+            avatarImg.onerror = () => avatarImg.src = 'images/default-avatar.jpg';
+            
+            document.title = `与${celebrity.name}对话中...`;
+        }
+
+        // 显示聊天页面
+        function showChatPage() {
+            console.log('=== 开始切换到聊天页面 ===');
+            const homePage = document.getElementById('home-page');
+            const chatPage = document.getElementById('chat-page');
+            
+            console.log('页面元素检查:');
+            console.log('- 首页元素:', homePage);
+            console.log('- 聊天页面元素:', chatPage);
+            
+            if (!homePage || !chatPage) {
+                console.error('找不到页面元素:', { homePage: !!homePage, chatPage: !!chatPage });
+                alert('页面元素缺失，无法切换页面');
+                return;
+            }
+            
+            // 直接设置display样式，确保切换成功
+            console.log('隐藏首页...');
+            homePage.style.display = 'none';
+            
+            console.log('显示聊天页面...');
+            chatPage.style.display = 'block';
+            
+            // 验证切换结果
+            setTimeout(() => {
+                const homeDisplay = window.getComputedStyle(homePage).display;
+                const chatDisplay = window.getComputedStyle(chatPage).display;
+                console.log('切换验证:');
+                console.log('- 首页 display:', homeDisplay);
+                console.log('- 聊天页面 display:', chatDisplay);
+                
+                if (chatDisplay === 'none') {
+                    console.error('⚠️ 页面切换失败！聊天页面仍然隐藏');
+                    alert('页面切换失败！请检查控制台');
+                } else {
+                    console.log('✅ 页面切换成功！');
+                }
+            }, 100);
+            
+            console.log('=== 页面切换操作完成 ===');
+        }
+
+        // 显示首页
+        function showHomePage() {
+            console.log('=== 返回首页 ===');
+            const homePage = document.getElementById('home-page');
+            const chatPage = document.getElementById('chat-page');
+            
+            // 直接设置display样式
+            if (chatPage) {
+                console.log('隐藏聊天页面');
+                chatPage.style.display = 'none';
+            }
+            if (homePage) {
+                console.log('显示首页');
+                homePage.style.display = 'flex';
+            }
+            
+            // 销毁当前的聊天客户端
+            if (currentChatClient) {
+                try {
+                    currentChatClient.destroy && currentChatClient.destroy();
+                } catch (e) {
+                    console.warn('销毁聊天客户端时出错:', e);
+                }
+                currentChatClient = null;
+            }
+            
+            // 清空聊天容器
+            const container = document.getElementById('coze-chat-container');
+            if (container) container.innerHTML = '';
+            document.title = '名人智能体对话';
+            
+            console.log('=== 返回首页完成 ===');
+        }
+
+        // 初始化Coze聊天客户端
+        function initializeCozeChatClient(celebrity) {
+            console.log(`=== 初始化 ${celebrity.name} 的聊天客户端 ===`);
+            
+            try {
+                // 获取API配置（优先从localStorage，后备从代码）
+                const apiKey = localStorage.getItem('coze_api_key') || 'YOUR_COZE_API_KEY';
+                const botMap = JSON.parse(localStorage.getItem('bot_map') || '{}');
+                const botId = botMap[celebrity.id] || celebrity.botId;
+
+                console.log('配置检查:');
+                console.log('- API Key:', apiKey ? '已设置' : '未设置');
+                console.log('- Bot ID Map:', botMap);
+                console.log('- 当前角色Bot ID:', botId);
+
+                // 检查配置是否完整
+                if (!apiKey || apiKey === 'YOUR_COZE_API_KEY' || !botId || botId.startsWith('YOUR_')) {
+                    console.log('配置不完整，显示配置错误页面');
+                    showConfigurationError(celebrity);
+                    return;
+                }
+
+                // 检查Coze SDK是否已加载
+                if (typeof CozeWebSDK === 'undefined') {
+                    console.error('Coze SDK 未加载');
+                    showLoadingError(celebrity);
+                    return;
+                }
+
+                // 销毁之前的客户端
+                if (currentChatClient) {
+                    console.log('销毁之前的客户端');
+                    currentChatClient.destroy && currentChatClient.destroy();
+                }
+
+                console.log('开始创建Coze聊天客户端...');
+
+                // 获取容器元素
+                const container = document.getElementById('coze-chat-container');
+                if (!container) {
+                    console.error('未找到聊天容器');
+                    return;
+                }
+
+                // 清空容器
+                container.innerHTML = '';
+                console.log('聊天容器已清空');
+
+                // 根据Coze官方文档创建WebChatClient
+                console.log('创建Coze WebChatClient...');
+                
+                // 尝试在初始化时就指定目标容器（基于其他SDK的最佳实践）
+                const clientConfig = {
+                    config: {
+                        bot_id: botId,
+                    },
+                    componentProps: {
+                        title: `与${celebrity.name}对话`,
+                        width: '100%',
+                        height: '100%',
+                        theme: 'light',
+                        // 尝试在初始化时指定容器
+                        container: container,
+                        target: container,
+                        element: container
+                    },
+                    auth: {
+                        type: 'token',
+                        token: apiKey,
+                        onRefreshToken: function () {
+                            return apiKey;
+                        }
+                    }
+                };
+                
+                // 如果有容器相关的配置选项，也添加到顶级配置中
+                if (container) {
+                    clientConfig.container = container;
+                    clientConfig.target = container;
+                    clientConfig.element = container;
+                }
+                
+                currentChatClient = new CozeWebSDK.WebChatClient(clientConfig);
+
+                console.log('WebChatClient创建完成，开始挂载到容器');
+                
+                // 使用正确的挂载方式
+                try {
+                    // 方法1: 尝试直接挂载（参考官方文档）
+                    if (typeof currentChatClient.mount === 'function') {
+                        currentChatClient.mount(container);
+                        console.log('✅ 使用mount方法挂载成功');
+                    } 
+                    // 方法2: 尝试render方法
+                    else if (typeof currentChatClient.render === 'function') {
+                        currentChatClient.render(container);
+                        console.log('✅ 使用render方法挂载成功');
+                    }
+                    // 方法3: SDK可能自动挂载到指定的元素ID
+                    else {
+                        console.log('⚠️ 未找到mount/render方法，等待SDK自动挂载');
+                        
+                        // 给容器添加一个特殊的ID，SDK可能需要它
+                        container.id = 'coze-webchat-container';
+                        container.setAttribute('data-bot-id', botId);
+                        
+                        // 显示加载状态
+                        container.innerHTML = `
+                            <div style="
+                                display: flex; 
+                                align-items: center; 
+                                justify-content: center; 
+                                height: 100%; 
+                                flex-direction: column;
+                                color: #666;
+                                font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                            ">
+                                <div style="
+                                    width: 40px; height: 40px; 
+                                    border: 4px solid #f3f3f3; 
+                                    border-top: 4px solid #667eea; 
+                                    border-radius: 50%; 
+                                    animation: spin 1s linear infinite; 
+                                    margin-bottom: 16px;
+                                "></div>
+                                <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600;">连接${celebrity.name}中...</h3>
+                                <p style="margin: 0; font-size: 14px; opacity: 0.8;">正在初始化聊天组件</p>
+                            </div>
+                        `;
+                        
+                        // 检查挂载状态
+                        let checkCount = 0;
+                        const checkMount = setInterval(() => {
+                            checkCount++;
+                            
+                            // 检查是否有新的子元素被添加（SDK挂载的标志）
+                            const hasSDKContent = container.querySelector('iframe') || 
+                                                 container.querySelector('[class*="coze"]') ||
+                                                 container.querySelector('[class*="chat"]') ||
+                                                 container.children.length > 1;
+                            
+                            if (hasSDKContent) {
+                                clearInterval(checkMount);
+                                console.log('✅ SDK组件已自动挂载');
+                                return;
+                            }
+                            
+                            // 10秒后停止检查
+                            if (checkCount > 20) {
+                                clearInterval(checkMount);
+                                console.log('⚠️ SDK挂载超时');
+                                container.innerHTML = `
+                                    <div style="padding: 40px; text-align: center; color: #666;">
+                                        <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                                        <h3>聊天组件加载异常</h3>
+                                        <p style="margin: 16px 0; line-height: 1.5;">
+                                            无法自动挂载聊天组件<br>
+                                            可能是网络问题或配置错误
+                                        </p>
+                                        <button onclick="startChatWithCelebrity(currentCharacter)" style="
+                                            background: #667eea; 
+                                            color: white; 
+                                            border: none; 
+                                            padding: 12px 24px; 
+                                            border-radius: 20px; 
+                                            cursor: pointer;
+                                            font-size: 14px;
+                                        ">重试连接</button>
+                                    </div>
+                                `;
+                            }
+                        }, 500);
+                    }
+                } catch (mountError) {
+                    console.error('❌ 挂载过程出错:', mountError);
+                    container.innerHTML = `
+                        <div style="padding: 40px; text-align: center; color: #666;">
+                            <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+                            <h3>初始化失败</h3>
+                            <p style="margin: 16px 0; line-height: 1.5;">
+                                聊天组件初始化时发生错误<br>
+                                <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-size: 12px;">
+                                    ${mountError.message}
+                                </code>
+                            </p>
+                            <button onclick="startChatWithCelebrity(currentCharacter)" style="
+                                background: #667eea; 
+                                color: white; 
+                                border: none; 
+                                padding: 12px 24px; 
+                                border-radius: 20px; 
+                                cursor: pointer;
+                                font-size: 14px;
+                            ">重试</button>
+                        </div>
+                    `;
+                }
+
+                console.log(`✅ 已初始化${celebrity.name}的聊天客户端`);
+
+            } catch (error) {
+                console.error('❌ 初始化Coze聊天客户端失败:', error);
+                showInitializationError(error);
+            }
+        }
+
+        // 显示配置错误提示
+        function showConfigurationError(celebrity) {
+            const container = document.getElementById('coze-chat-container');
+            const apiKey = localStorage.getItem('coze_api_key');
+            const botMap = JSON.parse(localStorage.getItem('bot_map') || '{}');
+            
+            let statusMessage = '';
+            if (!apiKey || apiKey === 'YOUR_COZE_API_KEY') {
+                statusMessage = '❌ 缺少 API Key';
+            } else if (!botMap[celebrity.id] && celebrity.botId.startsWith('YOUR_')) {
+                statusMessage = `❌ ${celebrity.name} 的 Bot ID 未配置`;
+            } else {
+                statusMessage = '❌ 配置不完整';
+            }
+            
+            container.innerHTML = `
+                <div style="padding: 40px; text-align: center; color: #666;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">⚙️</div>
+                    <h3 style="margin-bottom: 16px;">需要配置 ${celebrity.name} 的API</h3>
+                    <div style="margin-bottom: 20px;">
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;">
+                            <div style="color: #333; margin-bottom: 8px;"><strong>当前状态：</strong></div>
+                            <div style="color: ${apiKey && apiKey !== 'YOUR_COZE_API_KEY' ? '#28a745' : '#dc3545'};">
+                                ${apiKey && apiKey !== 'YOUR_COZE_API_KEY' ? '✅ API Key 已配置' : '❌ API Key 未配置'}
+                            </div>
+                            <div style="color: ${botMap[celebrity.id] ? '#28a745' : '#dc3545'};">
+                                ${botMap[celebrity.id] ? `✅ ${celebrity.name} Bot ID 已配置` : `❌ ${celebrity.name} Bot ID 未配置`}
+                            </div>
+                        </div>
+                        <p style="line-height: 1.6; color: #666;">
+                            ${!apiKey || apiKey === 'YOUR_COZE_API_KEY' 
+                                ? '请先配置 Coze API Key<br>然后为 ' + celebrity.name + ' 配置 Bot ID' 
+                                : '请为 ' + celebrity.name + ' 配置 Bot ID'}
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 12px; justify-content: center;">
+                        <button onclick="openConfigWindow()" style="
+                            background: #667eea; 
+                            color: white; 
+                            border: none; 
+                            padding: 12px 24px; 
+                            border-radius: 20px; 
+                            cursor: pointer;
+                            font-size: 14px;
+                        ">去配置</button>
+                        <button onclick="showHomePage()" style="
+                            background: #888; 
+                            color: white; 
+                            border: none; 
+                            padding: 12px 24px; 
+                            border-radius: 20px; 
+                            cursor: pointer;
+                            font-size: 14px;
+                        ">返回首页</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 打开配置窗口
+        function openConfigWindow() {
+            console.log('打开配置窗口');
+            
+            // 构建配置页面URL（原版index.html）
+            const currentUrl = window.location.href;
+            const configUrl = currentUrl.replace('index-coze-sdk.html', 'index.html');
+            
+            console.log('当前URL:', currentUrl);
+            console.log('配置页面URL:', configUrl);
+            
+            // 打开新窗口到原版配置页面
+            const popup = window.open(configUrl, 'config', 'width=430,height=800,scrollbars=yes,resizable=yes');
+            
+            if (!popup) {
+                alert('无法打开配置窗口，请检查浏览器弹窗拦截设置\n\n手动访问: ' + configUrl);
+                return;
+            }
+            
+            // 监听配置完成
+            let checkCount = 0;
+            const checkConfig = setInterval(() => {
+                checkCount++;
+                try {
+                    if (popup.closed) {
+                        clearInterval(checkConfig);
+                        console.log('配置窗口已关闭，重新检查配置');
+                        
+                        // 配置完成后重新尝试初始化
+                        setTimeout(() => {
+                            if (currentCharacter) {
+                                console.log('重新初始化聊天客户端');
+                                initializeCozeChatClient(currentCharacter);
+                            }
+                        }, 1000);
+                    }
+                    
+                    // 30秒后自动停止检查
+                    if (checkCount > 30) {
+                        clearInterval(checkConfig);
+                        console.log('配置检查超时');
+                    }
+                } catch (e) {
+                    // 跨域错误，忽略
+                }
+            }, 1000);
+        }
+
+        // 显示SDK加载错误
+        function showLoadingError(celebrity) {
+            const container = document.getElementById('coze-chat-container');
+            container.innerHTML = `
+                <div style="padding: 40px; text-align: center; color: #666;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
+                    <h3 style="margin-bottom: 16px;">Coze SDK 加载中...</h3>
+                    <p style="margin-bottom: 20px; line-height: 1.6;">
+                        正在从网络加载聊天组件<br>
+                        请稍候或检查网络连接
+                    </p>
+                    <div style="margin: 20px 0;">
+                        <div class="loading-spinner" style="
+                            width: 24px; height: 24px; 
+                            border: 3px solid #f3f3f3; 
+                            border-top: 3px solid #667eea; 
+                            border-radius: 50%; 
+                            animation: spin 1s linear infinite; 
+                            margin: 0 auto;
+                        "></div>
+                    </div>
+                    <button onclick="location.reload()" style="
+                        background: #667eea; 
+                        color: white; 
+                        border: none; 
+                        padding: 12px 24px; 
+                        border-radius: 20px; 
+                        cursor: pointer;
+                        font-size: 14px;
+                        margin-right: 12px;
+                    ">刷新页面</button>
+                    <button onclick="showHomePage()" style="
+                        background: #888; 
+                        color: white; 
+                        border: none; 
+                        padding: 12px 24px; 
+                        border-radius: 20px; 
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">返回首页</button>
+                </div>
+            `;
+        }
+
+        // 显示初始化错误提示
+        function showInitializationError(error) {
+            const container = document.getElementById('coze-chat-container');
+            container.innerHTML = `
+                <div style="padding: 40px; text-align: center; color: #666;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+                    <h3 style="margin-bottom: 16px;">初始化失败</h3>
+                    <p style="margin-bottom: 20px; line-height: 1.6;">
+                        无法连接到${currentCharacter.name}的聊天服务<br>
+                        请检查网络连接或API配置
+                    </p>
+                    <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin: 16px 0; font-size: 12px; font-family: monospace; text-align: left;">
+                        错误详情: ${error.message || error}
+                    </div>
+                    <button onclick="startChatWithCelebrity(currentCharacter)" style="
+                        background: #667eea; 
+                        color: white; 
+                        border: none; 
+                        padding: 12px 24px; 
+                        border-radius: 20px; 
+                        cursor: pointer;
+                        font-size: 14px;
+                        margin-right: 12px;
+                    ">重试</button>
+                    <button onclick="showHomePage()" style="
+                        background: #888; 
+                        color: white; 
+                        border: none; 
+                        padding: 12px 24px; 
+                        border-radius: 20px; 
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">返回首页</button>
+                </div>
+            `;
+        }
+
+        // 绑定事件
+        function bindEvents() {
+            // 返回按钮
+            document.getElementById('back-btn').onclick = showHomePage;
+
+            // 配置API按钮
+            document.getElementById('config-toggle').onclick = function() {
+                console.log('点击配置API按钮');
+                openConfigWindow();
+            };
+
+            // 分享按钮
+            document.getElementById('qr-toggle').onclick = function() {
+                const currentUrl = window.location.href;
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(currentUrl)}`;
+                
+                const popup = window.open('', 'qr', 'width=300,height=350');
+                popup.document.write(`
+                    <html>
+                        <head><title>分享二维码</title></head>
+                        <body style="text-align:center; padding:20px; font-family:sans-serif;">
+                            <h3>扫码访问</h3>
+                            <img src="${qrUrl}" alt="二维码" style="margin:20px 0;">
+                            <p>使用手机扫描上方二维码</p>
+                            <button onclick="window.close()" style="padding:8px 16px; margin-top:10px;">关闭</button>
+                        </body>
+                    </html>
+                `);
+            };
+        }
+
+        // 全局错误处理
+        window.addEventListener('error', function(e) {
+            console.error('页面错误:', e.error);
+        });
+
+        // 页面卸载时清理资源
+        window.addEventListener('beforeunload', function() {
+            if (currentChatClient) {
+                currentChatClient.destroy && currentChatClient.destroy();
+            }
+        });
+
+        // 全局SDK加载状态
+        let sdkLoaded = false;
+        let sdkLoading = false;
+
+        // 加载Coze SDK
+        function loadCozeSDK() {
+            if (sdkLoaded || sdkLoading) {
+                console.log('SDK already loaded or loading');
+                return Promise.resolve();
+            }
+            
+            console.log('开始加载Coze SDK...');
+            sdkLoading = true;
+            
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.10/libs/cn/index.js';
+                
+                script.onload = function() {
+                    console.log('✅ Coze SDK加载完成');
+                    sdkLoaded = true;
+                    sdkLoading = false;
+                    resolve();
+                };
+                
+                script.onerror = function() {
+                    console.error('❌ Coze SDK加载失败');
+                    sdkLoading = false;
+                    reject(new Error('SDK加载失败'));
+                };
+                
+                document.head.appendChild(script);
+            });
+        }
+
+        // 确保SDK加载后再初始化客户端
+        async function ensureSDKAndInitialize(celebrity) {
+            try {
+                if (!sdkLoaded) {
+                    console.log('等待SDK加载...');
+                    const container = document.getElementById('coze-chat-container');
+                    if (container) {
+                        container.innerHTML = `
+                            <div style="padding: 40px; text-align: center; color: #666;">
+                                <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
+                                <h3>正在加载聊天组件...</h3>
+                                <p>首次使用需要下载聊天SDK，请稍候</p>
+                                <div style="margin: 20px 0;">
+                                    <div class="loading-spinner" style="
+                                        width: 24px; height: 24px; 
+                                        border: 3px solid #f3f3f3; 
+                                        border-top: 3px solid #667eea; 
+                                        border-radius: 50%; 
+                                        animation: spin 1s linear infinite; 
+                                        margin: 0 auto;
+                                    "></div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    await loadCozeSDK();
+                }
+                
+                initializeCozeChatClient(celebrity);
+            } catch (error) {
+                console.error('SDK加载失败:', error);
+                showLoadingError(celebrity);
+            }
+        }
+
+        // 立即开始加载SDK（在页面加载时）
+        loadCozeSDK();
+        
+        // 全局暴露给调试使用
+        window.CozeSDKDebug = {
+            getCurrentClient: () => currentChatClient,
+            getSDKStatus: () => ({
+                loaded: sdkLoaded,
+                loading: sdkLoading,
+                available: typeof CozeWebSDK !== 'undefined'
+            }),
+            testMount: (containerId) => {
+                const container = document.getElementById(containerId);
+                if (container && currentChatClient) {
+                    console.log('测试手动挂载到:', containerId);
+                    try {
+                        if (currentChatClient.mount) {
+                            currentChatClient.mount(container);
+                            return 'mount成功';
+                        } else if (currentChatClient.render) {
+                            currentChatClient.render(container);
+                            return 'render成功';
+                        } else {
+                            return '未找到挂载方法: ' + Object.keys(currentChatClient);
+                        }
+                    } catch (e) {
+                        return '挂载失败: ' + e.message;
+                    }
+                } else {
+                    return '容器或客户端不存在';
+                }
+            }
+        };
+    </script>
+</body>
+</html> 

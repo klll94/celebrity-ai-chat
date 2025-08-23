@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDK测试页面</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 430px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 16px;
+            cursor: pointer;
+            text-align: center;
+        }
+        
+        .card:hover {
+            background: #f0f0f0;
+        }
+        
+        .chat-page {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            min-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 首页 -->
+    <div id="home-page">
+        <h1 style="color: white; text-align: center;">SDK测试页面</h1>
+        <div id="test-cards">
+            <!-- 测试卡片将在这里生成 -->
+        </div>
+    </div>
+
+    <!-- 聊天页面 -->
+    <div id="chat-page" class="hidden">
+        <div class="chat-page">
+            <button id="back-btn" onclick="showHomePage()">← 返回</button>
+            <h2 id="current-name">测试角色</h2>
+            <div id="coze-container" style="height: 300px; border: 1px solid #ccc; margin: 20px 0;">
+                Coze SDK 聊天组件将在这里加载
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 测试数据
+        const testData = [
+            { id: 'test1', name: '测试角色1' },
+            { id: 'test2', name: '测试角色2' }
+        ];
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('测试页面加载完成');
+            initTest();
+        });
+
+        function initTest() {
+            const container = document.getElementById('test-cards');
+            
+            testData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.textContent = item.name;
+                card.onclick = () => startTest(item);
+                container.appendChild(card);
+            });
+            
+            console.log('测试卡片生成完成');
+        }
+
+        function startTest(item) {
+            console.log('点击了:', item.name);
+            
+            // 更新信息
+            document.getElementById('current-name').textContent = item.name;
+            
+            // 切换页面
+            showChatPage();
+        }
+
+        function showChatPage() {
+            console.log('切换到聊天页面');
+            document.getElementById('home-page').classList.add('hidden');
+            document.getElementById('chat-page').classList.remove('hidden');
+        }
+
+        function showHomePage() {
+            console.log('返回首页');
+            document.getElementById('chat-page').classList.add('hidden');
+            document.getElementById('home-page').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>名人智能体对话</title>
+    <style>
+        /* 超简化CSS - 完全无动画无特效 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #4a5568;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        
+        .qr-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px auto;
+            max-width: 300px;
+            display: none;
+        }
+        
+        .celebrity-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .celebrity-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            /* 完全移除所有动画和特效 */
+        }
+        
+        .celebrity-card:hover {
+            background: #f9f9f9;
+            /* 只改变背景色，无动画 */
+        }
+        
+        .celebrity-card img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #667eea;
+            object-fit: cover;
+        }
+        
+        .celebrity-card h3 {
+            margin: 15px 0 5px 0;
+            color: #333;
+        }
+        
+        .celebrity-card p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            font-size: 0.9rem;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            .celebrity-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>名人智能体对话</h1>
+            <p>选择一位历史名人，开始有趣的对话吧</p>
+            
+            <button id="qr-btn" class="qr-btn">📱 生成二维码</button>
+            <div id="qr-container" class="qr-container">
+                <div id="qr-code"></div>
+                <p>扫码访问此页面</p>
+                <button onclick="hideQR()">关闭</button>
+            </div>
+        </div>
+        
+        <div class="celebrity-grid">
+            <div class="celebrity-card" onclick="goToChat('libai')">
+                <img src="images/libai.jpg" alt="李白" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iNDAiIGZpbGw9IiM2NjdlZWEiLz4KPHR0ZXh0IHg9IjQwIiB5PSI0NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5p2O55m9PC90ZXh0Pgo8L3N2Zz4K'">
+                <h3>李白</h3>
+                <p>唐朝 (701-762)<br>唐代浪漫主义诗人，被誉为"诗仙"</p>
+            </div>
+            
+            <div class="celebrity-card" onclick="goToChat('wangwei')">
+                <img src="images/wangwei.jpg" alt="王维" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iNDAiIGZpbGw9IiM2NjdlZWEiLz4KPHR0ZXh0IHg9IjQwIiB5PSI0NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+546L57u0PC90ZXh0Pgo8L3N2Zz4K'">
+                <h3>王维</h3>
+                <p>唐朝 (701-761)<br>唐代山水田园诗派代表人物</p>
+            </div>
+            
+            <div class="celebrity-card" onclick="goToChat('dufu')">
+                <img src="images/dufu.jpg" alt="杜甫" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iNDAiIGZpbGw9IiM2NjdlZWEiLz4KPHR0ZXh0IHg9IjQwIiB5PSI0NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5p2c55m9PC90ZXh0Pgo8L3N2Zz4K'">
+                <h3>杜甫</h3>
+                <p>唐朝 (712-770)<br>唐代现实主义诗人，被誉为"诗圣"</p>
+            </div>
+            
+            <div class="celebrity-card" onclick="goToChat('confucius')">
+                <img src="images/confucius.jpg" alt="孔子" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iNDAiIGZpbGw9IiM2NjdlZWEiLz4KPHR0ZXh0IHg9IjQwIiB5PSI0NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5a2U5a2QPC90ZXh0Pgo8L3N2Zz4K'">
+                <h3>孔子</h3>
+                <p>春秋 (551-479BC)<br>中国古代思想家、教育家</p>
+            </div>
+            
+            <div class="celebrity-card" onclick="goToChat('sushi')">
+                <img src="images/sushi.jpg" alt="苏轼" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iNDAiIGZpbGw9IiM2NjdlZWEiLz4KPHR0ZXh0IHg9IjQwIiB5PSI0NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+6IuP6L28PC90ZXh0Pgo8L3N2Zz4K'">
+                <h3>苏轼</h3>
+                <p>宋朝 (1037-1101)<br>北宋文学家，豪放派词人代表</p>
+            </div>
+            
+            <div class="celebrity-card" onclick="goToChat('liqingzhao')">
+                <img src="images/liqingzhao.jpg" alt="李清照" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iNDAiIGZpbGw9IiNlMzQyZjQiLz4KPHR0ZXh0IHg9IjQwIiB5PSI0NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjIwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5p2O5riF54WnPC90ZXh0Pgo8L3N2Zz4K'">
+                <h3>李清照</h3>
+                <p>宋朝 (1084-1155)<br>宋代女词人，婉约派代表</p>
+            </div>
+            
+            <div class="celebrity-card" onclick="goToChat('zhugeliang')">
+                <img src="images/zhugeliang.jpg" alt="诸葛亮" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iNDAiIGZpbGw9IiM2NjdlZWEiLz4KPHR0ZXh0IHg9IjQwIiB5PSI0NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE4IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+6K+46JGu5LquPC90ZXh0Pgo8L3N2Zz4K'">
+                <h3>诸葛亮</h3>
+                <p>三国 (181-234)<br>蜀汉丞相，杰出的政治家军事家</p>
+            </div>
+            
+            <div class="celebrity-card" onclick="goToChat('caocao')">
+                <img src="images/caocao.jpg" alt="曹操" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iNDAiIGZpbGw9IiNkYzI2MjYiLz4KPHR0ZXh0IHg9IjQwIiB5PSI0NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjI0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5pu55pON5L+APC90ZXh0Pgo8L3N2Zz4K'">
+                <h3>曹操</h3>
+                <p>三国 (155-220)<br>东汉末年政治家、军事家、文学家</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>💡 完全无闪烁版本 | 🤖 AI智能对话 | 📱 扫码分享</p>
+        </div>
+    </div>
+
+    <script>
+        // 超简化JavaScript - 无复杂操作
+        function goToChat(characterId) {
+            window.location.href = 'chat-simple.html?character=' + characterId;
+        }
+        
+        // 二维码功能
+        document.getElementById('qr-btn').onclick = function() {
+            const container = document.getElementById('qr-container');
+            const qrCode = document.getElementById('qr-code');
+            
+            if (container.style.display === 'none' || !container.style.display) {
+                // 生成二维码
+                const url = window.location.href;
+                const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(url);
+                qrCode.innerHTML = '<img src="' + qrUrl + '" alt="二维码" style="width: 200px; height: 200px;">';
+                container.style.display = 'block';
+                this.textContent = '❌ 隐藏二维码';
+            } else {
+                container.style.display = 'none';
+                this.textContent = '📱 生成二维码';
+            }
+        };
+        
+        function hideQR() {
+            document.getElementById('qr-container').style.display = 'none';
+            document.getElementById('qr-btn').textContent = '📱 生成二维码';
+        }
+    </script>
+</body>
+</html> 

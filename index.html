@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>名人智能体对话</title>
+    <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="assets/design-tokens.css">
+    <link rel="stylesheet" href="assets/theme.css">
+    <meta name="description" content="与18位中国历史名人AI智能体对话交流">
+    <meta name="keywords" content="名人对话,AI智能体,历史名人,李白,孔子">
+    
+    <!-- 预加载关键资源 -->
+    <link rel="preload" href="assets/styles.css" as="style">
+    <link rel="preload" href="assets/app.js" as="script">
+</head>
+<body class="app-gradient">
+    <div class="main-container">
+        <!-- 头部区域 -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">名人智能体对话</h1>
+                <p class="app-subtitle">选择一位历史名人，开始有趣的对话吧</p>
+                
+                <!-- 二维码分享功能 -->
+                <div class="share-section">
+                    <button id="qr-toggle" class="share-btn">
+                        📱 分享二维码
+                    </button>
+                    <button id="config-toggle" class="share-btn" style="margin-left:12px;">
+                        ⚙️ 配置API
+                    </button>
+                    <div id="qr-container" class="qr-modal" style="display: none;">
+                        <div class="qr-content">
+                            <h3>扫码访问</h3>
+                            <div id="qr-code" class="qr-image"></div>
+                            <p>使用手机扫描上方二维码</p>
+                            <button onclick="hideQR()" class="close-btn">关闭</button>
+                        </div>
+                    </div>
+                    <div id="config-container" class="qr-modal" style="display:none;">
+                        <div class="qr-content" style="max-width:340px;">
+                            <h3>API 设置</h3>
+                            <div style="text-align:left;display:flex;flex-direction:column;gap:10px;">
+                                <label>个人令牌(API Key)：
+                                    <input id="cfg-api-key" type="password" placeholder="pat_xxx" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;">
+                                </label>
+                                <label>角色ID(bot_id)：
+                                    <input id="cfg-bot-id" type="text" placeholder="例如：libai 或 newton" style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;">
+                                </label>
+                                <label>对应 bot_id 值：
+                                    <input id="cfg-bot-val" type="text" placeholder="例如：7123..." style="width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;">
+                                </label>
+                                <small>说明：保存后会写入浏览器本地(localStorage)，仅本机生效。</small>
+                            </div>
+                            <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;">
+                                <button id="cfg-save" class="close-btn">保存</button>
+                                <button id="cfg-debug" class="close-btn" style="background:#f39c12;">调试</button>
+                                <button onclick="hideConfig()" class="close-btn" style="background:#888;">关闭</button>
+                            </div>
+                            <div id="debug-info" style="margin-top:15px;padding:10px;background:#f8f9fa;border-radius:6px;font-size:12px;display:none;">
+                                <strong>当前配置状态：</strong>
+                                <div id="debug-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 名人网格 -->
+        <main class="celebrities-section">
+            <div class="celebrities-grid" id="celebrities-grid">
+                <!-- 名人卡片将由JavaScript动态生成 -->
+            </div>
+        </main>
+
+        <!-- 底部信息 -->
+        <footer class="app-footer">
+            <p>💡 支持移动端访问 | 🤖 AI智能对话 | 📱 扫码分享</p>
+            <p class="version-info">Version 1.0 | 基于GitHub Pages部署</p>
+        </footer>
+    </div>
+
+    <!-- 加载动画 -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>正在加载名人列表...</p>
+    </div>
+
+    <script src="assets/avatars.js"></script>
+    <script src="assets/app.js"></script>
+    <script>
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化应用
+            initializeApp();
+            
+            // 生成二维码
+            generateQRCode();
+            
+            // 隐藏加载动画
+            setTimeout(() => {
+                document.getElementById('loading-overlay').style.display = 'none';
+            }, 500);
+        });
+
+        // 生成二维码
+        function generateQRCode() {
+            const currentUrl = window.location.href;
+            const qrCodeDiv = document.getElementById('qr-code');
+            
+            // 使用在线二维码生成API
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(currentUrl)}`;
+            qrCodeDiv.innerHTML = `<img src="${qrUrl}" alt="二维码" style="width: 200px; height: 200px;">`;
+        }
+
+        // 显示/隐藏二维码
+        document.getElementById('qr-toggle').onclick = function() {
+            const container = document.getElementById('qr-container');
+            container.style.display = container.style.display === 'none' ? 'flex' : 'none';
+        };
+
+        // 显示/隐藏配置
+        document.getElementById('config-toggle').onclick = function() {
+            const el = document.getElementById('config-container');
+            el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+            if (el.style.display === 'flex') {
+                // 预填已有值
+                document.getElementById('cfg-api-key').value = localStorage.getItem('coze_api_key') || '';
+            }
+        };
+
+        document.getElementById('cfg-save').onclick = function() {
+            const apiKey = document.getElementById('cfg-api-key').value.trim();
+            const botKey = document.getElementById('cfg-bot-id').value.trim();
+            const botVal = document.getElementById('cfg-bot-val').value.trim();
+            if (apiKey) localStorage.setItem('coze_api_key', apiKey);
+            if (botKey && botVal) {
+                const mapRaw = localStorage.getItem('bot_map') || '{}';
+                const map = JSON.parse(mapRaw);
+                map[botKey] = botVal;
+                localStorage.setItem('bot_map', JSON.stringify(map));
+                alert('已保存 bot_id 映射: ' + botKey);
+            } else if (apiKey) {
+                alert('已保存 API Key');
+            }
+            hideConfig();
+        };
+
+        document.getElementById('cfg-debug').onclick = function() {
+            const debugInfo = document.getElementById('debug-info');
+            const debugContent = document.getElementById('debug-content');
+            
+            const apiKey = localStorage.getItem('coze_api_key') || '未设置';
+            const mapRaw = localStorage.getItem('bot_map') || '{}';
+            const map = JSON.parse(mapRaw);
+            
+            debugContent.innerHTML = `
+                <div>API Key: ${apiKey.substr(0, 10)}...</div>
+                <div>Bot映射: ${JSON.stringify(map, null, 2)}</div>
+                <div>可用角色: libai, luxun, edison, newton, faraday, wangwei 等18个</div>
+                <div style="margin-top:8px;color:#007aff;">
+                    <strong>使用说明：</strong><br/>
+                    1. 角色ID请用: libai, luxun, edison, newton 等<br/>
+                    2. bot_id 值是数字字符串，如: 7123456789012345678<br/>
+                    3. API Key 格式: pat_xxxxxxxxxx
+                </div>
+            `;
+            
+            debugInfo.style.display = debugInfo.style.display === 'none' ? 'block' : 'none';
+        };
+
+        function hideQR() {
+            document.getElementById('qr-container').style.display = 'none';
+        }
+
+        function hideConfig() {
+            document.getElementById('config-container').style.display = 'none';
+        }
+
+        // 点击背景关闭二维码
+        document.getElementById('qr-container').onclick = function(e) {
+            if (e.target === this) {
+                hideQR();
+            }
+        };
+    </script>
+</body>
+</html> 

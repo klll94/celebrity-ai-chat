@@ -1,0 +1,66 @@
+@import url('./design-tokens.css');
+
+/* 全局 */
+html, body {
+    font-family: var(--font-family);
+    color: var(--color-text-primary);
+}
+
+/* 背景渐变（避免fixed导致的闪烁） */
+.app-gradient {
+    background: linear-gradient(135deg, var(--color-bg-start) 0%, var(--color-bg-end) 100%);
+}
+
+/* 容器与卡片 */
+.card {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-bg-start) 0%, var(--color-bg-end) 100%);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-round);
+    padding: 12px 20px;
+    font-size: var(--font-size-body);
+    transition: transform 160ms ease, opacity 160ms ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    opacity: .96;
+}
+
+.title {
+    font-size: var(--font-size-display);
+    font-weight: var(--font-weight-semibold);
+}
+
+.subtitle {
+    font-size: var(--font-size-subtitle);
+    color: var(--color-text-secondary);
+}
+
+/* 列表/网格 */
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+}
+
+/* 聊天气泡 */
+.bubble-user {
+    background: linear-gradient(135deg, var(--color-bg-start) 0%, var(--color-bg-end) 100%);
+    color: #fff;
+    border-radius: 20px 6px 20px 20px;
+}
+
+.bubble-bot {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    border-radius: 6px 20px 20px 20px;
+} 

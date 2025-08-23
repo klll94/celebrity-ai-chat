@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>与名人对话中...</title>
+    <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="assets/design-tokens.css">
+    <link rel="stylesheet" href="assets/theme.css">
+    <meta name="description" content="与AI历史名人智能体实时对话">
+    
+    <!-- 预加载关键资源 -->
+    <link rel="preload" href="assets/styles.css" as="style">
+    <link rel="preload" href="assets/app.js" as="script">
+</head>
+<body class="chat-page">
+    <div class="chat-container">
+        <!-- 聊天头部 -->
+        <header class="chat-header">
+            <a href="index.html" class="back-btn">
+                <span class="back-arrow">←</span>
+                <span>返回</span>
+            </a>
+            
+            <div class="char-info">
+                <img id="char-avatar-img" class="char-avatar-img" src="images/default-avatar.jpg" alt="名人头像">
+                <div class="char-details">
+                    <h2 id="char-name" class="char-name">加载中...</h2>
+                    <p id="char-period" class="char-period"></p>
+                </div>
+            </div>
+            
+            <div class="header-spacer"></div>
+        </header>
+
+        <!-- 聊天窗口 -->
+        <main class="chat-window" id="chat-window">
+            <div class="welcome-loading">
+                <div class="loading-spinner"></div>
+                <p>正在准备对话...</p>
+            </div>
+        </main>
+
+        <!-- 输入区域 -->
+        <footer class="chat-input-container">
+            <form class="chat-input-form" id="chat-form">
+                <input 
+                    type="text" 
+                    class="message-input" 
+                    placeholder="输入您的问题..."
+                    maxlength="500"
+                    disabled
+                    autocomplete="off"
+                >
+                <button type="submit" class="send-btn" disabled>
+                    发送
+                </button>
+            </form>
+        </footer>
+    </div>
+
+    <!-- 错误提示 -->
+    <div id="error-toast" class="error-toast" style="display: none;">
+        <div class="error-content">
+            <p id="error-message">出现错误</p>
+            <button onclick="hideErrorToast()" class="error-close">×</button>
+        </div>
+    </div>
+
+    <script src="assets/avatars.js"></script>
+    <script src="assets/app.js"></script>
+    <script>
+        // 错误提示相关函数
+        function showErrorToast(message) {
+            const toast = document.getElementById('error-toast');
+            const messageEl = document.getElementById('error-message');
+            
+            if (messageEl) messageEl.textContent = message;
+            if (toast) {
+                toast.style.display = 'flex';
+                
+                // 3秒后自动隐藏
+                setTimeout(hideErrorToast, 3000);
+            }
+        }
+        
+        function hideErrorToast() {
+            const toast = document.getElementById('error-toast');
+            if (toast) {
+                toast.style.display = 'none';
+            }
+        }
+
+        // 页面初始化后的额外设置
+        document.addEventListener('DOMContentLoaded', function() {
+            // 清除加载提示
+            setTimeout(() => {
+                const welcomeLoading = document.querySelector('.welcome-loading');
+                if (welcomeLoading) {
+                    welcomeLoading.remove();
+                }
+                
+                // 启用输入框
+                const messageInput = document.querySelector('.message-input');
+                const sendBtn = document.querySelector('.send-btn');
+                
+                if (messageInput) messageInput.disabled = false;
+                if (sendBtn) sendBtn.disabled = false;
+            }, 1000);
+        });
+
+        // 键盘快捷键支持
+        document.addEventListener('keydown', function(e) {
+            // ESC键返回主页
+            if (e.key === 'Escape') {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // 页面可见性变化处理
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                // 页面重新可见时，焦点回到输入框
+                const messageInput = document.querySelector('.message-input');
+                if (messageInput && !messageInput.disabled) {
+                    messageInput.focus();
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

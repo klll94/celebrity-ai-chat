@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调试版本 - 页面切换测试</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 430px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .hidden { display: none; }
+        .show { display: block; }
+        
+        .home-page {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 16px;
+            color: white;
+        }
+        
+        .chat-page {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            display: none;
+        }
+        
+        .test-card {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            border: 2px solid transparent;
+        }
+        
+        .test-card:hover {
+            border-color: #007aff;
+            background: #f0f8ff;
+        }
+        
+        .back-btn {
+            background: #007aff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .debug-info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 14px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <!-- 首页 -->
+    <div id="home-page" class="home-page">
+        <h1 style="text-align: center; margin-bottom: 30px;">调试版本 - 页面切换测试</h1>
+        
+        <div class="debug-info" id="debug-home">
+            <div>状态：首页</div>
+            <div>时间：<span id="time-home"></span></div>
+        </div>
+        
+        <div class="test-card" onclick="testGoToChat('李白')">
+            <h3>李白</h3>
+            <p>点击测试页面切换</p>
+        </div>
+        
+        <div class="test-card" onclick="testGoToChat('鲁迅')">
+            <h3>鲁迅</h3>
+            <p>点击测试页面切换</p>
+        </div>
+        
+        <button onclick="forceShowChat()" style="background: #ff6b6b; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px;">
+            强制显示聊天页面 (调试用)
+        </button>
+    </div>
+
+    <!-- 聊天页面 -->
+    <div id="chat-page" class="chat-page hidden">
+        <button class="back-btn" onclick="testGoToHome()">← 返回首页</button>
+        
+        <div class="debug-info" id="debug-chat">
+            <div>状态：聊天页面</div>
+            <div>当前角色：<span id="current-char">未设置</span></div>
+            <div>时间：<span id="time-chat"></span></div>
+        </div>
+        
+        <h2 id="chat-title">测试聊天页面</h2>
+        <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p>这里应该显示 Coze 聊天组件</p>
+            <p>如果能看到这个页面，说明页面切换功能正常</p>
+        </div>
+        
+        <button onclick="testGoToHome()" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer;">
+            测试返回首页
+        </button>
+    </div>
+
+    <script>
+        console.log('调试页面开始加载...');
+        
+        // 更新时间显示
+        function updateTime() {
+            const now = new Date().toLocaleTimeString();
+            const homeTime = document.getElementById('time-home');
+            const chatTime = document.getElementById('time-chat');
+            if (homeTime) homeTime.textContent = now;
+            if (chatTime) chatTime.textContent = now;
+        }
+        
+        // 每秒更新时间
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // 测试跳转到聊天页面
+        function testGoToChat(characterName) {
+            console.log('=== 测试跳转到聊天页面 ===');
+            console.log('角色:', characterName);
+            
+            const homePage = document.getElementById('home-page');
+            const chatPage = document.getElementById('chat-page');
+            
+            console.log('首页元素:', homePage);
+            console.log('聊天页面元素:', chatPage);
+            
+            if (!homePage || !chatPage) {
+                console.error('页面元素缺失!');
+                alert('页面元素缺失! 检查控制台');
+                return;
+            }
+            
+            // 隐藏首页
+            console.log('隐藏首页...');
+            homePage.classList.add('hidden');
+            console.log('首页类名:', homePage.className);
+            
+            // 显示聊天页面
+            console.log('显示聊天页面...');
+            chatPage.classList.remove('hidden');
+            chatPage.classList.add('show');
+            console.log('聊天页面类名:', chatPage.className);
+            
+            // 更新角色信息
+            const charSpan = document.getElementById('current-char');
+            const chatTitle = document.getElementById('chat-title');
+            if (charSpan) charSpan.textContent = characterName;
+            if (chatTitle) chatTitle.textContent = `与 ${characterName} 对话`;
+            
+            console.log('页面切换完成!');
+            
+            // 检查显示状态
+            setTimeout(() => {
+                const homeDisplay = window.getComputedStyle(homePage).display;
+                const chatDisplay = window.getComputedStyle(chatPage).display;
+                console.log('切换后显示状态:');
+                console.log('- 首页 display:', homeDisplay);
+                console.log('- 聊天页面 display:', chatDisplay);
+                
+                if (chatDisplay === 'none') {
+                    console.error('聊天页面仍然隐藏!');
+                    alert('页面切换失败! 聊天页面仍然隐藏，检查控制台');
+                }
+            }, 100);
+        }
+        
+        // 测试返回首页
+        function testGoToHome() {
+            console.log('=== 测试返回首页 ===');
+            
+            const homePage = document.getElementById('home-page');
+            const chatPage = document.getElementById('chat-page');
+            
+            if (!homePage || !chatPage) {
+                console.error('页面元素缺失!');
+                return;
+            }
+            
+            // 显示首页
+            console.log('显示首页...');
+            homePage.classList.remove('hidden');
+            console.log('首页类名:', homePage.className);
+            
+            // 隐藏聊天页面
+            console.log('隐藏聊天页面...');
+            chatPage.classList.add('hidden');
+            chatPage.classList.remove('show');
+            console.log('聊天页面类名:', chatPage.className);
+            
+            console.log('返回首页完成!');
+        }
+        
+        // 强制显示聊天页面（调试用）
+        function forceShowChat() {
+            console.log('=== 强制显示聊天页面 ===');
+            const chatPage = document.getElementById('chat-page');
+            if (chatPage) {
+                chatPage.style.display = 'block';
+                chatPage.classList.remove('hidden');
+                console.log('强制显示完成');
+            }
+        }
+        
+        // 页面加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('调试页面加载完成');
+            console.log('首页元素:', document.getElementById('home-page'));
+            console.log('聊天页面元素:', document.getElementById('chat-page'));
+            updateTime();
+        });
+        
+        console.log('调试脚本加载完成');
+    </script>
+</body>
+</html> 

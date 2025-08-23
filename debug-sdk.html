@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDK调试版本</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 430px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .debug-container {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        
+        .test-btn {
+            background: #007aff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 14px;
+        }
+        
+        .test-btn:hover { background: #0056b3; }
+        
+        #coze-container {
+            background: #f5f5f5;
+            min-height: 300px;
+            border-radius: 8px;
+            margin: 20px 0;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007aff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h2>SDK调试控制台</h2>
+        
+        <div id="status-log">
+            <div class="status info">开始调试...</div>
+        </div>
+        
+        <div>
+            <button class="test-btn" onclick="testLocalStorage()">检查本地配置</button>
+            <button class="test-btn" onclick="testSDKLoad()">测试SDK加载</button>
+            <button class="test-btn" onclick="testInitClient()">测试初始化客户端</button>
+            <button class="test-btn" onclick="clearLog()">清空日志</button>
+        </div>
+    </div>
+    
+    <div class="debug-container">
+        <h3>Coze聊天容器</h3>
+        <div id="coze-container">
+            <div style="text-align: center; color: #666;">
+                等待初始化...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentClient = null;
+        let sdkLoaded = false;
+        
+        // 日志记录函数
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('status-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.createElement('div');
+            logDiv.className = `status ${type}`;
+            logDiv.innerHTML = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logDiv);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function clearLog() {
+            document.getElementById('status-log').innerHTML = 
+                '<div class="status info">日志已清空</div>';
+        }
+        
+        // 检查本地存储配置
+        function testLocalStorage() {
+            addLog('=== 检查本地配置 ===');
+            
+            const apiKey = localStorage.getItem('coze_api_key');
+            const botMap = localStorage.getItem('bot_map');
+            
+            addLog(`API Key: ${apiKey ? '已设置 (' + apiKey.substring(0, 10) + '...)' : '未设置'}`, 
+                   apiKey ? 'success' : 'error');
+            
+            if (botMap) {
+                try {
+                    const parsed = JSON.parse(botMap);
+                    addLog(`Bot配置: ${JSON.stringify(parsed, null, 2)}`, 'success');
+                } catch (e) {
+                    addLog(`Bot配置解析错误: ${e.message}`, 'error');
+                }
+            } else {
+                addLog('Bot配置: 未设置', 'error');
+            }
+        }
+        
+        // 测试SDK加载
+        function testSDKLoad() {
+            addLog('=== 测试SDK加载 ===');
+            
+            if (typeof CozeWebSDK !== 'undefined') {
+                addLog('✅ Coze SDK 已加载', 'success');
+                addLog(`SDK版本信息: ${JSON.stringify(Object.keys(CozeWebSDK))}`, 'info');
+                sdkLoaded = true;
+                return;
+            }
+            
+            addLog('开始加载 Coze SDK...', 'warning');
+            const container = document.getElementById('coze-container');
+            container.innerHTML = '<div class="spinner"></div><div style="text-align:center;">正在加载SDK...</div>';
+            
+            const script = document.createElement('script');
+            script.src = 'https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.10/libs/cn/index.js';
+            
+            script.onload = function() {
+                addLog('✅ Coze SDK 加载成功', 'success');
+                if (typeof CozeWebSDK !== 'undefined') {
+                    addLog(`SDK对象: ${JSON.stringify(Object.keys(CozeWebSDK))}`, 'info');
+                    sdkLoaded = true;
+                } else {
+                    addLog('❌ SDK加载后仍无法访问 CozeWebSDK 对象', 'error');
+                }
+                container.innerHTML = '<div style="text-align:center; color:#28a745;">SDK已就绪</div>';
+            };
+            
+            script.onerror = function() {
+                addLog('❌ Coze SDK 加载失败', 'error');
+                container.innerHTML = '<div style="text-align:center; color:#dc3545;">SDK加载失败</div>';
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        // 测试初始化客户端
+        function testInitClient() {
+            addLog('=== 测试初始化客户端 ===');
+            
+            if (!sdkLoaded || typeof CozeWebSDK === 'undefined') {
+                addLog('❌ SDK未加载，请先测试SDK加载', 'error');
+                return;
+            }
+            
+            const apiKey = localStorage.getItem('coze_api_key');
+            const botMap = JSON.parse(localStorage.getItem('bot_map') || '{}');
+            const botId = botMap['libai'] || 'YOUR_LIBAI_BOT_ID';
+            
+            if (!apiKey || apiKey === 'YOUR_COZE_API_KEY') {
+                addLog('❌ API Key 未配置', 'error');
+                return;
+            }
+            
+            if (!botId || botId.startsWith('YOUR_')) {
+                addLog('❌ 李白的 Bot ID 未配置', 'error');
+                return;
+            }
+            
+            addLog(`使用 Bot ID: ${botId}`, 'info');
+            addLog(`使用 API Key: ${apiKey.substring(0, 10)}...`, 'info');
+            
+            try {
+                // 销毁之前的客户端
+                if (currentClient) {
+                    addLog('销毁之前的客户端', 'warning');
+                    currentClient.destroy && currentClient.destroy();
+                }
+                
+                addLog('开始创建 WebChatClient...', 'info');
+                
+                currentClient = new CozeWebSDK.WebChatClient({
+                    config: {
+                        bot_id: botId,
+                    },
+                    componentProps: {
+                        title: '与李白对话',
+                        width: '100%',
+                        height: '400px',
+                        theme: 'light'
+                    },
+                    auth: {
+                        type: 'token',
+                        token: apiKey,
+                        onRefreshToken: function () {
+                            addLog('正在刷新token...', 'warning');
+                            return apiKey;
+                        }
+                    }
+                });
+                
+                                 addLog('✅ WebChatClient 创建成功', 'success');
+                 addLog('开始尝试挂载聊天组件...', 'info');
+                 
+                 // 清空容器
+                 const container = document.getElementById('coze-container');
+                 container.innerHTML = '<div style="text-align:center; color:#007aff;">正在挂载聊天组件...</div>';
+                 
+                 // 尝试不同的挂载方法
+                 try {
+                     if (currentClient.mount) {
+                         addLog('尝试使用 mount 方法挂载...', 'info');
+                         currentClient.mount(container);
+                         addLog('✅ mount 方法调用成功', 'success');
+                     } else if (currentClient.render) {
+                         addLog('尝试使用 render 方法挂载...', 'info');
+                         currentClient.render(container);
+                         addLog('✅ render 方法调用成功', 'success');
+                     } else {
+                         addLog('⚠️ 未找到 mount 或 render 方法', 'warning');
+                         addLog(`客户端方法: ${Object.keys(currentClient)}`, 'info');
+                     }
+                 } catch (mountError) {
+                     addLog(`❌ 挂载方法调用失败: ${mountError.message}`, 'error');
+                 }
+                 
+                 // 检查挂载状态
+                 setTimeout(() => {
+                     const hasContent = container.innerHTML.includes('iframe') || 
+                                      container.children.length > 1 ||
+                                      container.querySelector('.coze-chat') !== null ||
+                                      container.innerHTML.includes('coze');
+                     
+                     addLog(`容器子元素数量: ${container.children.length}`, 'info');
+                     addLog(`容器内容长度: ${container.innerHTML.length}`, 'info');
+                     
+                     if (hasContent) {
+                         addLog('✅ 聊天组件已成功挂载', 'success');
+                     } else {
+                         addLog('⚠️ 未检测到聊天组件内容', 'warning');
+                         addLog(`容器HTML: ${container.innerHTML.substring(0, 300)}`, 'info');
+                     }
+                 }, 3000);
+                
+            } catch (error) {
+                addLog(`❌ 创建客户端失败: ${error.message}`, 'error');
+                addLog(`错误详情: ${error.stack}`, 'error');
+            }
+        }
+        
+        // 页面加载完成后自动检查配置
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('页面加载完成', 'success');
+            setTimeout(() => {
+                testLocalStorage();
+            }, 500);
+        });
+    </script>
+</body>
+</html> 
