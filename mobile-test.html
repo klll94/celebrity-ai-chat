@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>移动端测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+            color: white;
+        }
+        
+        .title {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        
+        .test-card {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 10px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: block;
+            border: 3px solid white;
+        }
+        
+        .btn {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        .status {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">📱 移动端测试</h1>
+        
+        <div class="test-card">
+            <img class="avatar" src="images/李白.png" alt="李白" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iNDAiIGZpbGw9IiM2NjdlZWEiLz4KPHRLEHT0iNDAiIGN5PSIzNSIgcj0iMTIiIGZpbGw9IndoaXRlIi8+Cjx0ZXh0IHg9IjQwIiB5PSI1NSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuadjuWFkjwvdGV4dD4KPC9zdmc+'">
+            <h3>李白</h3>
+            <p>唐朝诗人</p>
+        </div>
+        
+        <button class="btn" onclick="testAPI()">测试 API 连接</button>
+        <button class="btn" onclick="testImages()">测试图片加载</button>
+        
+        <div class="status" id="status">
+            <p>📍 当前时间: <span id="time"></span></p>
+            <p>🌐 用户代理: <span id="useragent"></span></p>
+            <p>📱 屏幕尺寸: <span id="screen"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // 显示基本信息
+        function updateInfo() {
+            document.getElementById('time').textContent = new Date().toLocaleString();
+            document.getElementById('useragent').textContent = navigator.userAgent;
+            document.getElementById('screen').textContent = `${window.innerWidth}x${window.innerHeight}`;
+        }
+        
+        // 测试API连接
+        async function testAPI() {
+            const status = document.getElementById('status');
+            try {
+                status.innerHTML += '<p>🔄 正在测试网络连接...</p>';
+                const response = await fetch('https://httpbin.org/get');
+                const data = await response.json();
+                status.innerHTML += '<p>✅ 网络连接正常</p>';
+            } catch (error) {
+                status.innerHTML += '<p>❌ 网络连接失败: ' + error.message + '</p>';
+            }
+        }
+        
+        // 测试图片加载
+        function testImages() {
+            const status = document.getElementById('status');
+            const img = new Image();
+            img.onload = () => {
+                status.innerHTML += '<p>✅ 图片加载成功</p>';
+            };
+            img.onerror = () => {
+                status.innerHTML += '<p>❌ 图片加载失败</p>';
+            };
+            img.src = 'images/李白.png';
+        }
+        
+        // 初始化
+        updateInfo();
+        setInterval(updateInfo, 5000);
+        
+        // 错误处理
+        window.onerror = function(msg, url, line, col, error) {
+            const status = document.getElementById('status');
+            status.innerHTML += `<p>❌ JavaScript错误: ${msg}</p>`;
+        };
+    </script>
+</body>
+</html> 
